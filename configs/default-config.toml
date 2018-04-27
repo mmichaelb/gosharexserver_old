@@ -1,0 +1,38 @@
+# Configuration template of the ShareX Server
+#
+# Webserver settings
+[webserver]
+    # This is the address the webserver will bind to.
+    address = "localhost:10711"
+    # If you want to run ShareX server behind a reverse proxy you should uncomment this and set the value to the real ip
+    # address header. Note that headers in Go are always set in lower case camel case, e.g. "REAL-IP-ADDRESS" would be
+    # "Real-Ip-Address"
+#   reverse_proxy_header = "X-Real-Ip"
+    # This array specifies whitelisted content types which will be embedded when request a resource. The default values are
+    # the standard image, text and video mime types.
+    whitelisted_content_types = [
+        "image/png", "image/jpeg", "image/jpg", "image/gif",
+        "text/plain", "text/plain; charset=utf-8",
+        "video/mp4", "video/mpeg", "video/mpg4", "video/mpeg4", "video/flv", "video/quicktime",
+        "audio/mpeg"
+    ]
+    # The authorization token is used to prevent foreigners from uploading to your private ShareX server. Change this
+    # to your preferred and a secure token to avoid spammers/brute force attacks. Leave it empty if you want to disable
+    # authorization.
+    authorization_token = "1337#Secure_Token"
+# MongoDB (GridFS) settings
+[mongodb]
+    # remote server address the application should connect to.
+    address = "localhost:27017"
+    # connect timeout can be set according to the Golang time.Parse conventions.
+    connect_timeout = "4s"
+    # Per default not authorization is used. If you want to use authorization, just uncomment the following lines.
+#   auth_db = "admin"
+#   auth_user = "gosharexserver"
+#   auth_passwd = "<your-secret-password>"
+    # All ShareX Server data is stored inside this database.
+    db = "gosharexserver"
+    # New uploaded file metadata is stored in a GridFS database with the provided prefix.
+    gridfs_prefix = "uploads"
+    # GridFS chunk size in bytes.
+    grids_chunk_size = 255000
