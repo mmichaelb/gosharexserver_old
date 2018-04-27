@@ -1,0 +1,25 @@
+# Docker Compose can be used to run both, MongoDB and the gosharexserver as a service to enable container communication.
+version: '2'
+services:
+  gosharexserver:
+    image: mmichaelb/gosharexserver:latest
+    depends_on:
+      - mongodb
+    networks:
+      - all
+    ports:
+      - "10711:10711/tcp" # forward the gosharexserver port
+    volumes:
+      - ./gosharexserver-config.toml:/app/config.toml
+    tmpfs:
+      - "/tmp"
+  mongodb:
+    image: mongo:3.6
+    command: mongod
+    networks:
+      - all
+    volumes:
+      - ./data/:/data/db/
+
+networks:
+  all:

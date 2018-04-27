@@ -1,0 +1,24 @@
+language: go
+
+go:
+  - 1.8.x
+  - 1.9.x
+  - 1.10.x
+
+services:
+  - docker
+
+before_script:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+script:
+  - make dep
+  - make test
+  - make build
+
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: bash scripts/docker-deploy.sh $TRAVIS_COMMIT
+  on:
+    branch: master

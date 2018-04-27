@@ -1,0 +1,21 @@
+# THIS IS A TEST CONFIGURATION FILE, FOR DEFAULT CONFIGURATIONS SEE ../configs/
+#
+# Configuration template of the ShareX Server for testing purposes
+#
+# only test values
+[webserver]
+    address = ":80"
+    reverse_proxy_header = "This-Header-Contains-The-Real-IP"
+    whitelisted_content_types = [
+        "first-ct", "a-mime-type", "sp€ci4l"
+    ]
+    authorization_token = "123456"
+[mongodb]
+    address = "0.0.0.0:1337"
+    connect_timeout = "1m30s"
+    auth_db = "sharex-admin-db"
+    auth_user = "l_torvalds"
+    auth_passwd = "MySuperSecurePassword+!#"
+    db = "sharex-upload-metadata"
+    gridfs_prefix = "gridfsisnice"
+    grids_chunk_size = 1337
