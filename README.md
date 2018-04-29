@@ -4,6 +4,17 @@ Lightweight upload server for the ShareX client (https://getsharex.com/).
 # Description
 This application can be used as a standalone server side endpoint for your ShareX client. It is written in Go and designed to be lightweight and easy to understand. If you are a Golang developer, you can also use this project as your dependency and use the code in your own project.
 
+# Features
+- [x] upload and share images or in general files with the ShareX client
+- [x] MongoDB GridFS file storage
+- [ ] MySQL-driven file storage
+- [x] mime type whitelisting
+- [x] run behind a reverse proxy
+- [x] delete entries
+- [x] limit access by offering authorization 
+- [ ] user system
+- [x] Docker image/compose 
+
 # Installation
 ## Getting the binaries
 In order to install the ShareX server you have to get the binaries. There two possible methods of getting them:
