@@ -23,8 +23,8 @@ func TestMainConfig(t *testing.T) {
 	if whitelistedContentTypes := viper.GetStringSlice("webserver.whitelisted_content_types"); !reflect.DeepEqual(whitelistedContentTypes, []string{"first-ct", "a-mime-type", "sp€ci4l"}) {
 		t.Fatalf(`Invalid value for "webserver.whitelisted_content_types": %s`, strconv.Quote(fmt.Sprintf("%+v", whitelistedContentTypes)))
 	}
-	if authorizationToken := viper.GetString("webserver.authorization_token"); authorizationToken != "123456" {
-		t.Fatalf(`Invalid value for "webserver.authorization_token": %s`, strconv.Quote(authorizationToken))
+	if authorizationToken := viper.GetInt("webserver.authorization_token_length"); authorizationToken != 42 {
+		t.Fatalf(`Invalid value for "webserver.authorization_token_length": %d`, authorizationToken)
 	}
 	testMongoConfig(t)
 }

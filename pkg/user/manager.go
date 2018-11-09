@@ -7,12 +7,13 @@ import (
 )
 
 const (
-	collectionName        = "users"
-	searchIndexName       = "search_index"
-	uuidField             = "uuid"
-	usernameField         = "username"
-	hashingAlgorithmField = "hashing_algorithm"
-	hashField             = "hash"
+	collectionName          = "users"
+	searchIndexName         = "search_index"
+	uuidField               = "uuid"
+	usernameField           = "username"
+	authorizationTokenField = "authorization_token"
+	hashingAlgorithmField   = "hashing_algorithm"
+	hashField               = "hash"
 )
 
 // Manager manages the users by connecting to and using a MongoDB server.
@@ -68,5 +69,16 @@ func (manager *Manager) LoadUser(uuid uuid.UUID) (user *User, err error) {
 	if err = manager.collection.Find(bson.M{uuidField: uuid}).One(user); err != nil {
 		return
 	}
+	return
+}
+
+// CheckAuthorizationToken checks if the provided AuthorizationToken is registered inside the database and therefore
+// returns the uuid linked to the token.
+func (manager *Manager) CheckAuthorizationToken(token AuthorizationToken) (uid uuid.UUID, err error) {
+	uuidUser := &User{}
+	if err = manager.collection.Find(bson.M{uuidField: uid}).Select(bson.M{"_id": 0,uuidField:1}).One(uuidUser); err != nil {
+		return
+	}
+	uid = uuidUser.UUID
 	return
 }

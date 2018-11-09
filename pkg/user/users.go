@@ -1,12 +1,32 @@
 package user
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 )
+
+// AuthorizationToken wraps the byte representation of the authorization token to get a string representation.
+type AuthorizationToken []byte
+
+// String returns the string representation in the form of the hex encoded string.
+func (token AuthorizationToken) String() string {
+	return hex.EncodeToString(token)
+}
+
+// AuthorizationTokenFromString returns the parsed AuthorizationToken or nil if there was an error while parsing the
+// token.
+func AuthorizationTokenFromString(stringToken string) AuthorizationToken {
+	if rawToken, err := hex.DecodeString(stringToken); err == nil {
+		return AuthorizationToken(rawToken)
+	}
+	return nil
+}
 
 // User contains the meta data of a user.
 type User struct {
@@ -14,6 +34,8 @@ type User struct {
 	UUID uuid.UUID `bson:"uuid"`
 	// Username is the username of the user (changeable) but still unique.
 	Username string `bson:"username,omitempty"`
+	// AuthorizationToken is the authorization token which is used by the user to upload files.
+	AuthorizationToken AuthorizationToken `bson:"authorization_token"`
 	// HashingAlgorithm indicates the hashing algorithm by providing an identical and unique number to match the algorithm.
 	HashingAlgorithm HashingAlgorithm `bson:"hashing_algorithm,omitempty"`
 	// Hash contains the hashed password with all its needed fields.
@@ -89,6 +111,28 @@ findUUID:
 	if err = user.collection.Insert(user); err != nil {
 		return
 	}
+	return
+}
+
+// RegenerateAuthorizationToken (re-)generates the authorization token and updates the database entry. To acquire this,
+// the uuid field needs to be set. If there is no such user entry an mgo.ErrNotFound is returned.
+func (user *User) RegenerateAuthorizationToken() (token AuthorizationToken, err error) {
+	// validate if collection field is set
+	if err = user.validateCollectionField(); err != nil {
+		return
+	}
+	// generate token and check if it already exists
+tokenGeneration:
+	token = AuthorizationToken(make([]byte, viper.GetInt("webserver.authorization_token_length")))
+	if exists, err := entryExists(user.collection, bson.M{authorizationTokenField: token}); err != nil {
+		return
+	} else if exists {
+		goto tokenGeneration
+	}
+	if err = user.collection.Update(bson.M{uuidField: user.UUID}, bson.M{"$set": bson.M{authorizationTokenField: token}}); err != nil {
+		return
+	}
+	user.AuthorizationToken = token
 	return
 }
 
