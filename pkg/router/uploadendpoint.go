@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/mmichaelb/gosharexserver/pkg/storage"
 	"io"
 	"log"
@@ -72,7 +73,9 @@ func (shareXRouter *ShareXRouter) handleUpload(writer http.ResponseWriter, reque
 	// set content type header to application/json
 	writer.Header().Set("Content-Type", "application/json")
 	// write the above created json message to the client
-	writer.Write([]byte(jsonResponse))
+	if _, err = writer.Write([]byte(jsonResponse)); err != nil {
+		fmt.Printf("there was an error while sending back the json response: %e", err)
+	}
 }
 
 // writeFile writes the received uploaded data to the provided writer by the stored entry

@@ -51,7 +51,7 @@ func (shareXRouter *ShareXRouter) checkAuthorization(request *http.Request, writ
 		http.Error(writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	} else if err != nil {
-		log.Printf("there was an error while checking the authorization token (%s): %s", strconv.Quote(rawToken), err.Error()) // TODO better error logging
+		log.Printf("there was an error while checking the authorization token (%s): %e", strconv.Quote(rawToken), err) // TODO better error logging
 		http.Error(writer, "Internal server error", http.StatusInternalServerError)
 		return
 	}
