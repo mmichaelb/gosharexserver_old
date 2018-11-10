@@ -8,6 +8,7 @@ import (
 	"github.com/mmichaelb/gosharexserver/pkg/router"
 	"github.com/mmichaelb/gosharexserver/pkg/storage"
 	"github.com/mmichaelb/gosharexserver/pkg/storage/storages"
+	"github.com/mmichaelb/gosharexserver/pkg/user"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"log"
@@ -44,8 +45,9 @@ func main() {
 	var fileStorage storage.FileStorage
 	session := connectToMongoDB()
 	// use MongoStorage per default
+	database := session.DB(viper.GetString("mongodb.db"))
 	fileStorage = &storages.MongoStorage{
-		Database:        session.DB(viper.GetString("mongodb.db")),
+		Database:        database,
 		GridFSPrefix:    viper.GetString("mongodb.gridfs_prefix"),
 		GridFSChunkSize: viper.GetInt("mongodb.gridfs_chunk_size"),
 	}
@@ -54,12 +56,16 @@ func main() {
 	if err := fileStorage.Initialize(); err != nil {
 		log.Fatalf("There was an error while initializing the storage: %v\n", err)
 	}
+	// initiate user manager
+	userManager := &user.Manager{
+		Database:database,
+	}
 	log.Println("Done with storage initialization! Continuing with the binding of the ShareX muxRouter...")
 	// bind ShareXRouter to previously initialized mux muxRouter
 	shareXRouter := &router.ShareXRouter{
 		Storage:                 fileStorage,
 		WhitelistedContentTypes: viper.GetStringSlice("webserver.whitelisted_content_types"),
-		AuthorizationToken:      viper.GetString("webserver.authorization_token"),
+		UserManager:userManager,
 	}
 	// bind ShareX server handler to existing mux muxRouter
 	shareXRouter.WrapHandler(muxRouter.PathPrefix("/").Subrouter())

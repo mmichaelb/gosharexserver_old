@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/mmichaelb/gosharexserver/pkg/storage"
+	"github.com/mmichaelb/gosharexserver/pkg/user"
 	"io"
 	"log"
 	"math/rand"
@@ -126,7 +127,7 @@ func ExampleFileStorage() {
 		UploadDate:  time.Now(),
 		Filename:    "testfile.png",
 		ContentType: "my/mime/type",
-		Author:      storage.AuthorIdentifier("a testing person"),
+		Author:      user.DefaultAuthor,
 	}
 	if writer, err := fileStorage.Store(testEntry); err != nil {
 		log.Println("There was an error while storing the TestEntry.")

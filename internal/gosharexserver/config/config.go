@@ -29,8 +29,8 @@ func setWebserverDefaults() {
 		"text/plain", "text/plain; charset=utf-8",
 		"video/mp4", "video/mpeg", "video/mpg4", "video/mpeg4", "video/flv",
 	})
-	// authorization token is set to a default value but should be changed when using the application
-	viper.SetDefault("webserver.authorization_token", "1337#Secure_Token")
+	// length of each generated authorization token is set to 20 per default
+	viper.SetDefault("webserver.authorization_token_length", 20)
 }
 
 // LoadMainConfig loads the main config and stores the data into the Cfg variable.

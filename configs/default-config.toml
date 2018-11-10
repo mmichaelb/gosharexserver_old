@@ -16,10 +16,8 @@
         "video/mp4", "video/mpeg", "video/mpg4", "video/mpeg4", "video/flv", "video/quicktime",
         "audio/mpeg"
     ]
-    # The authorization token is used to prevent foreigners from uploading to your private ShareX server. Change this
-    # to your preferred and a secure token to avoid spammers/brute force attacks. Leave it empty if you want to disable
-    # authorization.
-    authorization_token = "1337#Secure_Token"
+    # length of each generated authorization token for users.
+    authorization_token_length = 20
 # MongoDB (GridFS) settings
 [mongodb]
     # remote server address the application should connect to.

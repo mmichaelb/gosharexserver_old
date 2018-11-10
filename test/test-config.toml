@@ -9,7 +9,7 @@
     whitelisted_content_types = [
         "first-ct", "a-mime-type", "sp€ci4l"
     ]
-    authorization_token = "123456"
+    authorization_token_length = 42
 [mongodb]
     address = "0.0.0.0:1337"
     connect_timeout = "1m30s"

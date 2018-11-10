@@ -1,12 +1,10 @@
 package storage
 
 import (
+	"github.com/google/uuid"
 	"io"
 	"time"
 )
-
-// AuthorIdentifier identifies the author. It currently is a simple access token.
-type AuthorIdentifier string
 
 // ID can vary and is therefore mutable.
 type ID interface{}
@@ -26,8 +24,8 @@ type Entry struct {
 	CallReference string
 	//DeleteReference is an token used for deleting the entry.
 	DeleteReference string
-	// AuthorIdentifier determines the uploader information.
-	Author AuthorIdentifier
+	// Author determines the uploader by providing a unique uuid.
+	Author uuid.UUID
 	// Filename is the name of the file (contains the application name and date) which is sent with by the ShareX client.
 	Filename string
 	// ContentType is the MIME-Type of the uploaded file.
