@@ -44,7 +44,7 @@ func (user *User) SetBSON(raw bson.Raw) (err error) {
 	}
 	var unwrappedHashingAlgorithmId interface{}
 	var ok bool
-	if unwrappedHashingAlgorithmId, ok = rowWrapped[hashingAlgorithmField]; !ok {
+	if unwrappedHashingAlgorithmId, ok = rawWrapped[hashingAlgorithmField]; !ok {
 		return
 	}
 	user.HashingAlgorithm = HashingAlgorithm(unwrappedHashingAlgorithmId.(int))
@@ -53,7 +53,7 @@ func (user *User) SetBSON(raw bson.Raw) (err error) {
 		return fmt.Errorf("could not find a matching algorithm for id: %d", user.HashingAlgorithm)
 	}
 	var hashData []byte
-	if hashData, err = bson.Marshal(rowWrapped[hashField]); err != nil {
+	if hashData, err = bson.Marshal(rawWrapped[hashField]); err != nil {
 		return
 	}
 	if err = bson.Unmarshal(hashData, user.Hash); err != nil {
@@ -108,7 +108,8 @@ func (user *User) RegenerateAuthorizationToken() (token AuthorizationToken, err 
 	// generate token and check if it already exists
 tokenGeneration:
 	token = AuthorizationToken(make([]byte, viper.GetInt("webserver.authorization_token_length")))
-	if exists, err := entryExists(user.collection, bson.M{authorizationTokenField: token}); err != nil {
+	var exists bool
+	if exists, err = entryExists(user.collection, bson.M{authorizationTokenField: token}); err != nil {
 		return
 	} else if exists {
 		goto tokenGeneration
