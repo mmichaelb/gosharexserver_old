@@ -4,6 +4,7 @@ import (
 	"bytes"
 	cryptRand "crypto/rand"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/kataras/iris/core/errors"
 	"github.com/mmichaelb/gosharexserver/pkg/storage"
 	"gopkg.in/mgo.v2"
@@ -178,10 +179,14 @@ func (mongoStorage *MongoStorage) Request(callReference string) (*storage.Entry,
 	if !ok {
 		return nil, errors.New("could not parse metadata field from GridFS document")
 	}
+	author, err := uuid.FromBytes(metadata[authorField].([]byte))
+	if err != nil {
+		return nil, errors.New("could not parse author uuid from database file metadata")
+	}
 	entry := &storage.Entry{
 		ID:            id,
 		CallReference: metadata[callReferenceField].(string),
-		Author:        storage.AuthorIdentifier(metadata[authorField].(string)),
+		Author:        author,
 		Filename:      gridFile.Name(),
 		ContentType:   gridFile.ContentType(),
 		UploadDate:    gridFile.UploadDate(),
