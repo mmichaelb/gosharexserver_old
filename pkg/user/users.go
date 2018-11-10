@@ -1,7 +1,6 @@
 package user
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
