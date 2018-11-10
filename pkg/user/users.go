@@ -2,13 +2,12 @@ package user
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"log"
 )
 
 // AuthorizationToken wraps the byte representation of the authorization token to get a string representation.

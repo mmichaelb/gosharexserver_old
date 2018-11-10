@@ -3,7 +3,7 @@ package user
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/pkg/errors"
+	"errors"
 	"golang.org/x/crypto/argon2"
 )
 
