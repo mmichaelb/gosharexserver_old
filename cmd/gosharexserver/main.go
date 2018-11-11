@@ -83,10 +83,9 @@ func main() {
 	}
 	log.Printf("Running ShareX server in background and listening for connections on %s. "+
 		"Press CTRL-C to stop the application.\n", strconv.Quote(webserverAddress))
-	var closed bool
 	go func() {
 		// run http server in background
-		if err := httpServer.ListenAndServe(); err != nil && !closed {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
@@ -95,7 +94,6 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 	log.Println("Shutting down ShareX server and MongoDB connection...")
-	closed = true
 	if err := httpServer.Close(); err != nil {
 		log.Printf("There was an error while closing the ShareX server, %T: %v\n", err, err)
 	}
