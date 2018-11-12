@@ -3,10 +3,8 @@ version: '2'
 services:
   gosharexserver:
     image: mmichaelb/gosharexserver:latest
-    depends_on:
+    links:
       - mongodb
-    networks:
-      - all
     ports:
       - "10711:10711/tcp" # forward the gosharexserver port
     volumes:
@@ -16,10 +14,5 @@ services:
   mongodb:
     image: mongo:3.6
     command: mongod
-    networks:
-      - all
     volumes:
       - ./data/:/data/db/
-
-networks:
-  all:
