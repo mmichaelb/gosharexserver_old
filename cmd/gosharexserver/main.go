@@ -70,7 +70,8 @@ func main() {
 	}
 	fileHttpRouter.BindToIris(app.Party("/"))
 	irisCfg := &iris.Configuration{
-		DisableVersionChecker: true,
+		DisableStartupLog:true,
+		DisableInterruptHandler:true,
 	}
 	// check if a reverse proxy is used
 	if reverseProxyHeader := viper.GetString("webserver.reverse_proxy_header"); reverseProxyHeader != "" {
@@ -84,7 +85,7 @@ func main() {
 	app.Logger().SetLevel("debug")
 	go func() {
 		// run http server in background
-		if err := app.Run(iris.Addr(webserverAddress), iris.WithoutStartupLog, iris.WithoutVersionChecker,iris.WithoutInterruptHandler); err != nil && err != iris.ErrServerClosed {
+		if err := app.Run(iris.Addr(webserverAddress), iris.WithConfiguration(*irisCfg)); err != nil && err != iris.ErrServerClosed {
 			panic(err)
 		}
 	}()

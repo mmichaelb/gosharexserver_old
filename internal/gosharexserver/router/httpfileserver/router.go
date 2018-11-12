@@ -35,7 +35,7 @@ type Router struct {
 // BindToIris binds all endpoints to the given iris party.
 func (router *Router) BindToIris(party iris.Party) {
 	// register macro to filter
-	party.Macros().String.RegisterFunc("reference", router.referenceMacro)
+	party.Macros().Get("string").RegisterFunc("reference", router.referenceMacro)
 	// register upload and delete endpoints
 	updatesParty := party.Party("/updates", router.authorizationTokenHandler)
 	updatesParty.Post("/upload", router.upload)
