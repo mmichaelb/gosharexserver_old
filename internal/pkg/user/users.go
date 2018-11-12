@@ -1,6 +1,7 @@
 package user
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -108,6 +109,9 @@ func (user *User) RegenerateAuthorizationToken() (token AuthorizationToken, err 
 	// generate token and check if it already exists
 tokenGeneration:
 	token = AuthorizationToken(make([]byte, viper.GetInt("webserver.authorization_token_length")))
+	if _, err = rand.Read(token); err != nil {
+		return
+	}
 	var exists bool
 	if exists, err = entryExists(user.collection, bson.M{authorizationTokenField: token}); err != nil {
 		return
