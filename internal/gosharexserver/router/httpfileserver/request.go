@@ -32,6 +32,10 @@ func (router *Router) request(ctx iris.Context) {
 			ctx.Application().Logger().Warnf("there was an error while closing the entry reader: %s", err.Error())
 		}
 	}()
+	if modified, err := ctx.CheckIfModifiedSince(entry.UploadDate); !modified && err == nil {
+		ctx.WriteNotModified()
+		return
+	}
 	// send disposition header
 	var dispositionType string
 	for _, entryMimeType := range viper.GetStringSlice("webserver.whitelisted_content_types") {
@@ -45,6 +49,8 @@ func (router *Router) request(ctx iris.Context) {
 	ctx.Header(dispositionHeader, fmt.Sprintf(dispositionValueFormat, dispositionType, entry.Filename))
 	// set content type header
 	ctx.Header(context.ContentTypeHeaderKey, entry.ContentType)
+	// set last modified header
+	ctx.SetLastModified(entry.UploadDate)
 	// write file data from the opened reader to the remote client
 	buf := make([]byte, maximumBufferSize)
 	for {
