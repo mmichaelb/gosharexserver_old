@@ -3,23 +3,24 @@ package storages
 import (
 	"bytes"
 	cryptRand "crypto/rand"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/kataras/iris/core/errors"
-	"github.com/mmichaelb/gosharexserver/pkg/storage"
+	"github.com/mmichaelb/gosharexserver/internal/pkg/storage"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"io"
 	"log"
 	"math/big"
 	mathRand "math/rand"
+	"regexp"
 )
 
 const (
 	// Data to generate new call/delete references
-	referenceChars        = "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
-	callReferenceLength   = 6
-	deleteReferenceLength = 16
+	ReferenceChars        = "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
+	CallReferenceLength   = 6
+	DeleteReferenceLength = 16
 	// MongoDB index names
 	referenceIndexName = "reference_index"
 	// MongoDB key names
@@ -30,6 +31,8 @@ const (
 	authorField          = "author"
 	metadataFieldScheme  = "%s.%s"
 )
+
+var ReferenceRegex = regexp.MustCompile(fmt.Sprintf("^[a-zA-Z0-9]+$"))
 
 // MongoStorage is the FileStorage implementation using MongoDB GridFS.
 type MongoStorage struct {
@@ -100,18 +103,18 @@ func (mongoStorage *MongoStorage) Store(entry *storage.Entry) (writer io.WriteCl
 // method which randomly creates a new call reference
 func (mongoStorage *MongoStorage) newCallReference() (callReference string) {
 	buf := bytes.NewBuffer([]byte{})
-	randomMaximum := big.NewInt(int64(len(referenceChars)))
-	for i := 0; i < callReferenceLength; i++ {
+	randomMaximum := big.NewInt(int64(len(ReferenceChars)))
+	for i := 0; i < CallReferenceLength; i++ {
 		var randomIndex int
 		randomIntIndex, err := cryptRand.Int(cryptRand.Reader, randomMaximum)
 		if err != nil {
 			log.Printf("Could not get create random call reference with crypto/rand. "+
 				"Falling back to (insecure) math/rand package. %T: %v\n", err, err)
-			randomIndex = mathRand.Intn(len(referenceChars))
+			randomIndex = mathRand.Intn(len(ReferenceChars))
 		} else {
 			randomIndex = int(randomIntIndex.Int64())
 		}
-		buf.WriteString(referenceChars[randomIndex : randomIndex+1])
+		buf.WriteString(ReferenceChars[randomIndex : randomIndex+1])
 	}
 	callReference = buf.String()
 	if duplicate, err := mongoStorage.checkForDuplicate(fmt.Sprintf(metadataFieldScheme, metadataField, callReferenceField), callReference); err != nil {
@@ -125,18 +128,18 @@ func (mongoStorage *MongoStorage) newCallReference() (callReference string) {
 //method which randomly creates a new delete reference
 func (mongoStorage *MongoStorage) newDeleteReference() (deleteReference string) {
 	buf := bytes.NewBuffer([]byte{})
-	randomMaximum := big.NewInt(int64(len(referenceIndexName)))
-	for i := 0; i < deleteReferenceLength; i++ {
+	randomMaximum := big.NewInt(int64(len(ReferenceChars)))
+	for i := 0; i < DeleteReferenceLength; i++ {
 		var randomIndex int
 		randomIntIndex, err := cryptRand.Int(cryptRand.Reader, randomMaximum)
 		if err != nil {
-			log.Printf("Could not get create random call reference with crypto/rand. "+
+			log.Printf("Could not get create random delete reference with crypto/rand. "+
 				"Falling back to (insecure) math/rand package. %T: %v\n", err, err)
-			randomIndex = mathRand.Intn(len(referenceIndexName))
+			randomIndex = mathRand.Intn(len(ReferenceChars))
 		} else {
 			randomIndex = int(randomIntIndex.Int64())
 		}
-		buf.WriteString(referenceIndexName[randomIndex : randomIndex+1])
+		buf.WriteString(ReferenceChars[randomIndex : randomIndex+1])
 	}
 	deleteReference = buf.String()
 	if duplicate, err := mongoStorage.checkForDuplicate(fmt.Sprintf(metadataFieldScheme, metadataField, deleteReferenceField), deleteReference); err != nil {

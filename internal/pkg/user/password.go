@@ -31,7 +31,7 @@ type PasswordHash interface {
 
 // GetDefaultPasswordHash returns the current default PasswordHash algorithm and its ID.
 func GetDefaultPasswordHash() (PasswordHash, HashingAlgorithm) {
-	return GetPasswordHashByAlgorithmId(HashingArgon2ID),HashingArgon2ID
+	return GetPasswordHashByAlgorithmId(HashingArgon2ID), HashingArgon2ID
 }
 
 // GetPasswordHashByAlgorithmId returns a PasswordHash by using the provided HashingAlgorithm.
@@ -39,10 +39,10 @@ func GetPasswordHashByAlgorithmId(algorithmId HashingAlgorithm) PasswordHash {
 	switch algorithmId {
 	case HashingArgon2ID:
 		return &Argon2IDPasswordHash{
-			Time:Argon2IDTime,
-			Memory:Argon2IDMemory,
-			Threads:Argon2IDThreads,
-			KeyLen:Argon2IDKeyLen,
+			Time:    Argon2IDTime,
+			Memory:  Argon2IDMemory,
+			Threads: Argon2IDThreads,
+			KeyLen:  Argon2IDKeyLen,
 		}
 	default:
 		return nil

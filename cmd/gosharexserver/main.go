@@ -1,18 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"github.com/gorilla/mux"
-	"github.com/mmichaelb/gosharexserver/internal/gosharexserver"
-	"github.com/mmichaelb/gosharexserver/internal/gosharexserver/config"
-	"github.com/mmichaelb/gosharexserver/pkg/router"
-	"github.com/mmichaelb/gosharexserver/pkg/storage"
-	"github.com/mmichaelb/gosharexserver/pkg/storage/storages"
-	"github.com/mmichaelb/gosharexserver/pkg/user"
+	"github.com/kataras/iris"
+	"github.com/mmichaelb/gosharexserver/internal/gosharexserver/router/httpfileserver"
+	"github.com/mmichaelb/gosharexserver/internal/pkg/config"
+	"github.com/mmichaelb/gosharexserver/internal/pkg/storage"
+	"github.com/mmichaelb/gosharexserver/internal/pkg/storage/storages"
+	"github.com/mmichaelb/gosharexserver/internal/pkg/user"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -41,7 +40,7 @@ func main() {
 	}
 	log.Printf("Successfully loaded %d configuration keys.\n", len(viper.AllKeys()))
 	// setup default mux router
-	muxRouter := mux.NewRouter()
+	app := iris.New()
 	var fileStorage storage.FileStorage
 	session := connectToMongoDB()
 	// use MongoStorage per default
@@ -54,38 +53,39 @@ func main() {
 	// initialization via interface method Initialize of the file storage instance
 	log.Println("Initializing file storage...")
 	if err := fileStorage.Initialize(); err != nil {
-		log.Fatalf("There was an error while initializing the storage: %v\n", err)
+		log.Fatalf("There was an error while initializing the storage: %v", err)
 	}
 	// initiate user manager
 	userManager := &user.Manager{
-		Database:database,
+		Database: database,
 	}
-	log.Println("Done with storage initialization! Continuing with the binding of the ShareX muxRouter...")
+	if err := userManager.InitializeCollection(); err != nil {
+		log.Fatalf("There was an error while initializing the user manager: %v", err)
+	}
+	log.Println("Done with storage initialization! Continuing with the binding of the Iris web server initialization...")
 	// bind ShareXRouter to previously initialized mux muxRouter
-	shareXRouter := &router.ShareXRouter{
-		Storage:                 fileStorage,
-		WhitelistedContentTypes: viper.GetStringSlice("webserver.whitelisted_content_types"),
-		UserManager:userManager,
+	fileHttpRouter := &httpfileserver.Router{
+		Storage:     fileStorage,
+		UserManager: userManager,
 	}
-	// bind ShareX server handler to existing mux muxRouter
-	shareXRouter.WrapHandler(muxRouter.PathPrefix("/").Subrouter())
-	var handler http.Handler
+	fileHttpRouter.BindToIris(app.Party("/"))
+	irisCfg := &iris.Configuration{
+		DisableStartupLog:true,
+		DisableInterruptHandler:true,
+	}
 	// check if a reverse proxy is used
 	if reverseProxyHeader := viper.GetString("webserver.reverse_proxy_header"); reverseProxyHeader != "" {
-		handler = gosharexserver.WrapRouterToReverseProxyRouter(muxRouter, reverseProxyHeader)
-	} else {
-		handler = muxRouter
+		irisCfg.RemoteAddrHeaders = map[string]bool{
+			reverseProxyHeader: true,
+		}
 	}
 	webserverAddress := viper.GetString("webserver.address")
-	httpServer := http.Server{
-		Addr:    webserverAddress,
-		Handler: handler,
-	}
 	log.Printf("Running ShareX server in background and listening for connections on %s. "+
 		"Press CTRL-C to stop the application.\n", strconv.Quote(webserverAddress))
+	app.Logger().SetLevel("debug")
 	go func() {
 		// run http server in background
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := app.Run(iris.Addr(webserverAddress), iris.WithConfiguration(*irisCfg)); err != nil && err != iris.ErrServerClosed {
 			panic(err)
 		}
 	}()
@@ -94,7 +94,7 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 	log.Println("Shutting down ShareX server and MongoDB connection...")
-	if err := httpServer.Close(); err != nil {
+	if err := app.Shutdown(context.Background()); err != nil {
 		log.Printf("There was an error while closing the ShareX server, %T: %v\n", err, err)
 	}
 	if err := fileStorage.Close(); err != nil {

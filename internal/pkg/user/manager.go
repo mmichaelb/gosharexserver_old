@@ -27,9 +27,14 @@ type Manager struct {
 // InitializeCollection initializes the collection.
 func (manager *Manager) InitializeCollection() (err error) {
 	manager.collection = manager.Database.C(collectionName)
-	var indexes []mgo.Index
-	if indexes, err = manager.collection.Indexes(); err != nil || len(indexes) > 0 {
+	collectionNames, err := manager.Database.CollectionNames()
+	if err != nil {
 		return
+	}
+	for _, databaseCollectionName := range collectionNames {
+		if databaseCollectionName == collectionName {
+			goto indexCheck
+		}
 	}
 	if err = manager.collection.Create(&mgo.CollectionInfo{
 		Validator: bson.M{
@@ -42,6 +47,16 @@ func (manager *Manager) InitializeCollection() (err error) {
 		ValidationAction: "error",
 	}); err != nil {
 		return
+	}
+indexCheck:
+	var indexes []mgo.Index
+	if indexes, err = manager.collection.Indexes(); err != nil || len(indexes) > 0 {
+		return
+	}
+	for _, index := range indexes {
+		if index.Name == searchIndexName {
+			return
+		}
 	}
 	if err = manager.collection.EnsureIndex(mgo.Index{
 		Name:       searchIndexName,
@@ -76,7 +91,7 @@ func (manager *Manager) LoadUser(uuid uuid.UUID) (user *User, err error) {
 // returns the uuid linked to the token.
 func (manager *Manager) CheckAuthorizationToken(token AuthorizationToken) (uid uuid.UUID, err error) {
 	uuidUser := &User{}
-	if err = manager.collection.Find(bson.M{uuidField: uid}).Select(bson.M{"_id": 0,uuidField:1}).One(uuidUser); err != nil {
+	if err = manager.collection.Find(bson.M{uuidField: uid}).Select(bson.M{"_id": 0, uuidField: 1}).One(uuidUser); err != nil {
 		return
 	}
 	uid = uuidUser.UUID
