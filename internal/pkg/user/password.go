@@ -17,6 +17,9 @@ const (
 	Argon2IDMemory  uint32 = 1024 * 64
 	Argon2IDThreads uint8  = 4
 	Argon2IDKeyLen  uint32 = 32
+)
+
+const (
 	// IDs of all hashing algorithms
 	HashingArgon2ID HashingAlgorithm = iota
 )
