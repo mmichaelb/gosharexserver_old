@@ -18,13 +18,13 @@ type User struct {
 	// UUID is a unique identifier different for each user.
 	UUID uuid.UUID `bson:"uuid"`
 	// Username is the username of the user (changeable) but still unique.
-	Username string `bson:"username,omitempty"`
+	Username string `bson:"username"`
 	// AuthorizationToken is the authorization token which is used by the user to upload files.
 	AuthorizationToken AuthorizationToken `bson:"authorization_token"`
 	// HashingAlgorithm indicates the hashing algorithm by providing an identical and unique number to match the algorithm.
-	HashingAlgorithm HashingAlgorithm `bson:"hashing_algorithm,omitempty"`
+	HashingAlgorithm HashingAlgorithm `bson:"hashing_algorithm"`
 	// Hash contains the hashed password with all its needed fields.
-	Hash PasswordHash `bson:"hash,omitempty"`
+	Hash PasswordHash `bson:"hash"`
 	// internal MongoDB specific values
 	collection *mgo.Collection
 }
@@ -82,6 +82,7 @@ func (user *User) CreateNewEntry(rawPassword []byte) (uid uuid.UUID, err error) 
 	// find unused uuid
 findUUID:
 	user.UUID = uuid.New()
+	uid = user.UUID
 	if exists, err = entryExists(user.collection, bson.M{uuidField: user.UUID}); err != nil {
 		return
 	} else if exists {
@@ -175,7 +176,7 @@ func (user *User) Delete() (err error) {
 // internal utility functions
 
 func (user *User) validateCollectionField() (err error) {
-	if user.collection != nil {
+	if user.collection == nil {
 		err = errors.New("internal 'collection' field cannot be unset")
 	}
 	return
