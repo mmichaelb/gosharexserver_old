@@ -1,0 +1,10 @@
+# build from scratch image
+FROM scratch
+# set label to github repository
+LABEL github-repository="https://github.com/mmichaelb/gosharexserver/tree/master/cmd/gosharexserver-user-adder"
+# set working directory
+WORKDIR /app/
+# add compiled binary to root path
+ADD ./gosharexserver-user-adder .
+# start application located at /app/gosharexserver
+ENTRYPOINT ["./gosharexserver-user-adder"]
