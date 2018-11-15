@@ -23,6 +23,8 @@ var (
 	username        = flag.String("username", "", "username of the new user (required)")
 	password        = flag.String("password", "", "password of the new user (required)")
 	authTokenLength = flag.Int("auth_token_length", 20, "length of the authorization token to generate")
+
+	useJson = flag.Bool("json", false, "set output to json format")
 )
 
 func main() {
@@ -59,11 +61,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not regenerate authorization token: %v", err)
 	}
-	fmt.Println("------------------------------------------------------------------------")
-	fmt.Printf("| %-8s -> %-56s |\n", "username", *username)
-	fmt.Printf("| %-8s -> %-56s |\n", "uuid", uuid.String())
-	fmt.Printf("| %-8s -> %-56s |\n", "token", token.String())
-	fmt.Println("------------------------------------------------------------------------")
+	if *useJson {
+		fmt.Println(fmt.Sprintf(`{username:"%s",uuid:"%s",token:"%s"}`, *username, uuid.String(), token.String()))
+	} else {
+		fmt.Println("------------------------------------------------------------------------")
+		fmt.Printf("| %-8s -> %-56s |\n", "username", *username)
+		fmt.Printf("| %-8s -> %-56s |\n", "uuid", uuid.String())
+		fmt.Printf("| %-8s -> %-56s |\n", "token", token.String())
+		fmt.Println("------------------------------------------------------------------------")
+	}
 }
 
 func validateFlag(name string, flagValue *string) {
